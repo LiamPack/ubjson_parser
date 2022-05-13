@@ -1,0 +1,3 @@
+(library
+ (name ubjson_parser)
+ (libraries angstrom))
