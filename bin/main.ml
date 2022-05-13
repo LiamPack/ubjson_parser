@@ -63,7 +63,7 @@ module N = struct
     | 'L' -> _int64
     | 'd' -> _float32
     | 'D' -> _float64
-    | x -> fail ("_number Failed on char " ^ (String.make 1 x)) 
+    | x -> fail ("_number Failed on char " ^ (String.make 1 x))
 
 end
 
@@ -96,8 +96,15 @@ let ubjson =
   let pair x y = (x,y) in
   fix (fun ubjson ->
       let mem = lift2 pair _id_string ubjson in
-      let obj = char '{' *> many mem <* char '}' >>= fun ms -> return (`Object ms) in
-      let arr = char '[' *> many ubjson <* char ']' >>= fun ms -> return (`Array ms) in
+      let peek_dollar_sign = (peek_char_fail >>= (function
+                                                  | '$' -> advance 2
+                                                  | _ -> advance 0)) in
+      let obj = char '{'
+                *> peek_dollar_sign
+                *> many mem <* char '}' >>= fun ms -> return (`Object ms) in
+      let arr = char '['
+                *> peek_dollar_sign
+                *> many ubjson <* char ']' >>= fun ms -> return (`Array ms) in
       peek_char_fail
       >>= function
       | 'F' -> _false | 'T' -> _true | 'Z' -> _null | 'N' -> _no_op
@@ -124,6 +131,6 @@ let read_whole_file filename =
 
 let x =
   let fn = (read_whole_file "/home/liamp/Slippi/Game_20220108T175949.slp") in
-  match (parse_string ~consume:All ubjson "{U\003\000rawT}") with
+  match (parse_string ~consume:All ubjson "{$IU\003\000rawT}") with
   | Ok c -> c
   | Error msg -> print_endline msg; `Null
