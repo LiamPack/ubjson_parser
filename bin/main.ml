@@ -29,31 +29,31 @@ type ubjson =
 module N = struct
   let _uint8 : ubjson t =
     let open Bytes in
-    char 'U' *> take 2 >>= fun x -> return (`UInt8 (get_uint8 (of_string x) 0))
+    char 'U' *> take 1 >>= fun x -> return (`UInt8 (get_uint8 (of_string x) 0))
 
   let _int8 : ubjson t =
     let open Bytes in
-    char 'i' *> take 2 >>= fun x -> return (`Int8 (get_int8 (of_string x) 0))
+    char 'i' *> take 1 >>= fun x -> return (`Int8 (get_int8 (of_string x) 0))
 
   let _int16 : ubjson t =
     let open Bytes in
-    char 'I' *> take 3 >>= fun x -> return (`Int16 (get_int16_be (of_string x) 0))
+    char 'I' *> take 2 >>= fun x -> return (`Int16 (get_int16_be (of_string x) 0))
 
   let _int32 : ubjson t =
     let open Bytes in
-    char 'l' *> take 5 >>= fun x -> return (`Int32 (get_int32_be (of_string x) 0))
+    char 'l' *> take 4 >>= fun x -> return (`Int32 (get_int32_be (of_string x) 0))
 
   let _int64 : ubjson t =
     let open Bytes in
-    char 'L' *> take 9 >>= fun x -> return (`Int64 (get_int64_be (of_string x) 0))
+    char 'L' *> take 8 >>= fun x -> return (`Int64 (get_int64_be (of_string x) 0))
 
   let _float32 : ubjson t  =
     let open Bytes in
-    char 'd' *> take 5 >>= fun x -> return (`Float32 (get_int32_be (of_string x) 0 |> Int32.float_of_bits))
+    char 'd' *> take 4 >>= fun x -> return (`Float32 (get_int32_be (of_string x) 0 |> Int32.float_of_bits))
 
   let _float64 : ubjson t =
     let open Bytes in
-    char 'D' *> take 9 >>= fun x -> return (`Float64 (get_int64_be (of_string x) 0 |> Int64.float_of_bits))
+    char 'D' *> take 8 >>= fun x -> return (`Float64 (get_int64_be (of_string x) 0 |> Int64.float_of_bits))
 
   let _number : char -> ubjson t = function
     | 'U' -> _uint8
@@ -74,7 +74,7 @@ let _no_op  : ubjson t = char 'N'  *> return `NoOp
 
 let _char : ubjson t =
   let open Bytes in
-  char 'C' *> take 2 >>= fun x -> return (`Char (String.get (to_string (of_string x)) 0))
+  char 'C' *> take 1 >>= fun x -> return (`Char (String.get (to_string (of_string x)) 0))
 
 let _string : ubjson t =
   let open Bytes in
@@ -119,8 +119,9 @@ let ubjson =
       | 'S' -> _string
       | '{' -> obj
       | '[' -> arr
-      | x -> failwith ("Error: ran into character " ^ (String.make 1 x))
+      | _ -> fail "End of Grammar"
     ) <?> "ubjson"
+
 
 let read_whole_file filename =
   let ch = open_in filename in
@@ -131,6 +132,6 @@ let read_whole_file filename =
 
 let x =
   let fn = (read_whole_file "/home/liamp/Slippi/Game_20220108T175949.slp") in
-  match (parse_string ~consume:All ubjson "{$IU\003\000rawT}") with
+  match (parse_string ~consume:All ubjson "[i\003i\004]") with
   | Ok c -> c
   | Error msg -> print_endline msg; `Null
