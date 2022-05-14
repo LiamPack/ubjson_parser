@@ -17,4 +17,4 @@
  (name ubjson_parser)
  (synopsis "A UBJSON parser for OCAML")
  (description "A Universal Binary JSON parsing library, powered by Angstrom, for parsing any data specified in the UBJSON format.")
- (depends ocaml dune angstrom))
+ (depends ocaml dune angstrom ounit2))

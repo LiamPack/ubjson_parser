@@ -1,2 +1,5 @@
 (test
- (name ubjson_parser))
+ (name run_tests)
+ (libraries ounit2 ubjson_parser)
+ (action
+  (run %{test})))
