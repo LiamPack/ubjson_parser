@@ -94,21 +94,9 @@ let ubjson =
   let pair x y = (x,y) in
   fix (fun ubjson ->
       let mem = lift2 pair _id_string ubjson in
-      let peek_optimized_container =
-        (function | '$' -> take 2
-                  | '#' -> char '#' *> peek_char_fail >>=
-                             fun x -> N._number x *> take 0
-                  | _ -> take 0) in
-      let peek_dollar_sign =
-        (peek_char_fail
-         >>=  peek_optimized_container
-         >>= fun _ -> peek_char_fail
-         >>= peek_optimized_container) in
       let obj = char '{'
-                *> peek_dollar_sign
-                *> many mem <* char '}' >>= fun ms -> (List.iter (fun x -> match x with |s,_ -> print_endline s) ms); return (`Object ms) in
+                *> many mem <* char '}' >>= fun ms -> return (`Object ms) in
       let arr = char '['
-                *> peek_dollar_sign
                 *> many ubjson <* char ']' >>= fun ms -> return (`Array ms) in
       peek_char_fail
       >>= function
@@ -135,11 +123,11 @@ let read_whole_file filename =
   s
 
 
-let test_str = "{i\005loginSi\007octocati\002idSi\006Mediumi\004plan{i\004nameSi\006Medium}U\003raw[$U#l\000\002\005\003U\003]}"
+let test_str = "{i\005loginSi\007octocati\002idSi\006Mediumi\004plan{i\004nameSi\006Medium}U\003raw[U\003]}"
 
 
 let x =
   let fn = (read_whole_file "../test/raw.slp") in
-  match (parse_string ~consume:All ubjson fn) with
+  match (parse_string ~consume:All ubjson test_str) with
   | Ok c -> c
   | Error msg -> print_endline msg; `Null
