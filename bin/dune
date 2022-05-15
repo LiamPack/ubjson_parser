@@ -1,4 +1,0 @@
-(executable
- (public_name ubjson_parser)
- (name main)
- (libraries ubjson_parser))

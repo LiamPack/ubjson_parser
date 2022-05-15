@@ -1,8 +1,6 @@
 open Angstrom
 
-
 (* https://ubjson.org/ *)
-
 (* https://ubjson.org/type-reference/ *)
 type ubjson =
   (* value types *)
@@ -39,7 +37,7 @@ module N = struct
     parse_number  1 (fun x ->  `Int8 (Bytes.get_int8 (Bytes.of_string x) 0))
 
   let _int16 : ubjson t =
-    parse_number   2 (fun x ->  `Int16 (Bytes.get_int16_be (Bytes.of_string x) 0))
+    parse_number  2 (fun x ->  `Int16 (Bytes.get_int16_be (Bytes.of_string x) 0))
 
   let _int32 : ubjson t =
     parse_number  4 (fun x -> `Int32 (Bytes.get_int32_be (Bytes.of_string x) 0))
@@ -121,15 +119,14 @@ let _parse_char : char -> ubjson t =
 let ubjson =
   let pair x y = (x,y) in
   fix (fun ubjson ->
-      let mem = lift2 pair _id_string ubjson in
+      let mem = both _id_string ubjson in
       let mem_fixed_type t = lift2 pair _id_string t in
-      (* can do `many _type` maybe *)
       let maybe_type =
         char '$' *> take1 in
-      (* can do `repeat n ubjson` or `repeat n _type` *)
-      (* just don't allow the container types to be an allowable _type lol *)
       let maybe_length =
         char '#' *> peek1 >>= N._number in
+      (* TODO: replace the "or" (<|>) parser branches with a `both (option maybe_type)
+         (option maybe_length) >>= fun x -> match x ... *)
       let obj =
         ((lift2 pair maybe_type maybe_length
           >>= fun x -> let c,l = x in
@@ -157,6 +154,6 @@ let ubjson =
                             fail ("End of Grammar: "^(String.make 1 c))) <?> "ubjson"
 
 let _ =
-  match (parse_string ~consume:All ubjson "{$U#i\003i\003lat\006i\003lon\009i\003alt\012") with
+  match (parse_string ~consume:All ubjson "{i\005loginSi\007octocati\002idSi\006Mediumi\004plan{i\004nameSi\006Medium}U\003raw[U\003d\001\002\003\004TFZNC3]}") with
   | Ok c -> c
   | Error msg -> print_endline msg; `Null
