@@ -80,7 +80,6 @@ let _null  : ubjson t = return `Null
 let _no_op  : ubjson t = return `NoOp
 
 let _char : ubjson t =
-  let open Bytes in
   take1 >>= fun x -> return (`Char x)
 
 let _id_string : string t =
@@ -93,7 +92,6 @@ let _id_string : string t =
                | _ -> fail "Identifier String"
 
 let _string : ubjson t =
-  let open Bytes in
   _id_string >>= fun s -> return (`String s)
 
 let _parse_char : char -> ubjson t =
